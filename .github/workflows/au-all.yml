@@ -18,11 +18,25 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Explore environment
-        run: gci
+        run: |
+          gci
+          Get-CimInstance win32_operatingsystem -Property Caption, OSArchitecture, Version | fl Caption, OSArchitecture, Version
+          $PSVersionTable
+          git --version
+          choco --version
+      
+      - name: Install AU
+        run: |
+          git clone -q https://github.com/majkinetor/au.git $Env:TEMP/au
+          . "$Env:TEMP/au/scripts/Install-AU.ps1" $Env:au_version
 
       - name: Run AU update_all
         run: .\update_all.ps1
-      
+
+      - name: Zip AU results
+        run: 7z a au_temp.zip $Env:TEMP\chocolatey\au\*
+        if: ${{ always() }} # even if build fails
+
       - name: Upload results
         uses: actions/upload-artifact@v2.2.2
         with:
